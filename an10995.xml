@@ -10,7 +10,7 @@
                sync-j="8" />
 
    <project name="caseykelso/toolchain"                     remote="github"      path="toolchain" clone-depth="1"  /> 
-   <project name="p/openocd/code"                           remote="sourceforge" path="openocd" />
-   <project name="libusb/libusb.git"                        remote="github"      path="libusb" />
+   <project name="p/openocd/code"                           remote="sourceforge" path="openocd" clone-depth="1" />
+   <project name="libusb/libusb.git"                        remote="github"      path="libusb" clone-depth="1"  />
    <project name="caseykelso/AN10995"                       remote="github"      path="." />
 </manifest>
