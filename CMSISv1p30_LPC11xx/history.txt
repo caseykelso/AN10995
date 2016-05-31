@@ -1,0 +1,12 @@
+History of updates to CMSISv1p30_LPC11xx
+========================================
+
+23 February 2010
+----------------
+LPC11xx.h updated to new version (dated 23 February 2010),
+correcting value of __NVIC_PRIO_BITS from 3 to 2.
+
+23 March 2010
+-------------
+Optimisation level of release build of project changed from
+-O2 to -Os.
