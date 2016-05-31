@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+      <remote name="sourceforge"
+           fetch="git://git.code.sf.net" />
+
+   <remote name="github"
+           fetch="git://github.com" />
+
+   <project name="caseykelso/toolchain"                     remote="github"      path="toolchain" clone-depth="1"  />
+   <project name="p/openocd/code"                           remote="sourceforge" path="openocd" />
+   <project name="libusb/libusb.git"                        remote="github"      path="libusb" />
+</manifest>
