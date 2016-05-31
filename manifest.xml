@@ -9,4 +9,5 @@
    <project name="caseykelso/toolchain"                     remote="github"      path="toolchain" clone-depth="1"  />
    <project name="p/openocd/code"                           remote="sourceforge" path="openocd" />
    <project name="libusb/libusb.git"                        remote="github"      path="libusb" />
+   <project name="caseykelso/AN10995"                       remote="github"      path="bootloader" />
 </manifest>
