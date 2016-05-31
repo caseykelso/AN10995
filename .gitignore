@@ -1,2 +1,6 @@
-*.o
 *.swp
+.repo/
+installed.host/
+libusb/
+openocd/
+toolchain/
