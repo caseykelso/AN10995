@@ -1,0 +1,183 @@
+<project name="bootloader" basedir=".">
+
+<property name="install.host.dir"          value="${basedir}/installed.host" />
+<property name="install.target.dir"        value="${basedir}/installed.target" />
+<property name="common.dir"                value="${basedir}/common" />
+<property name="toolchain.dir"             value="${basedir}/toolchain" />
+<property name="servertest.dir"            value="${basedir}/application/servertest" />
+<property name="libusb.dir"                value="${basedir}/libusb" />
+<property name="openocd.dir"               value="${basedir}/openocd" />
+<property name="gcc-linux-arm.archive"     value="gcc-arm-none-eabi-5_3-2016q1-20160330-linux.tar.bz2" />
+<property name="gcc-arm.dir"               value="${toolchain.dir}/gcc-arm-none-eabi-5_3-2016q1" />
+<property name="gcc-osx-arm.archive"       value="gcc-arm-none-eabi-5_3-2016q1-20160330-mac.tar.bz2" />
+<property name="source.dir"                value="${basedir}/source" />
+<property name="embedded.dir"              value="${basedir}/source" />
+<property name="cms.include"               value="${freertos.dir}/Demo/CORTEX_M0_LPC1114_LPCXpresso/CMSISv2p00_LPC11xx/inc" />
+<property name="build.dir"                 value="${basedir}/build" />
+<property name="object.dir"                value="${basedir}/objects" />
+
+<property environment="env" /> 
+
+<target name="main_clean">
+  <delete dir="${basedir}/build" />
+</target>
+
+<target name="setup" depends="toolchain, openocd">
+</target>
+
+<target name="checkhost">
+
+	<condition property="isWindows">
+		<os family="windows" />
+	</condition>
+
+	<condition property="isLinux">
+          <and>
+		<os family="unix" />
+                <not>
+                   <os family="mac" />
+                </not> 
+          </and>
+	</condition>
+
+	<condition property="isOSX">
+	    <os family="mac"  /> 
+	</condition>
+
+</target>
+
+<target name="checkhost_osx_test" depends="checkhost" if="isOSX" >
+ <echo message="****OSX Detected" /> 
+</target>
+
+<target name="checkhost_linux_test" depends="checkhost" if="isLinux" >
+ <echo message="****Linux Detected" /> 
+</target>
+
+<target name="checkhost_windows_test" depends="checkhost" if="isWindows" >
+ <echo message="****Windows Detected" /> 
+</target>
+
+
+<target name="flash"> 
+	<exec executable="${install.host.dir}/bin/openocd" failonerror="true">
+            <arg value="-f" />
+            <arg value="${basedir}/flash.cfg" />
+	</exec>
+</target>
+
+
+<target name="debug_setup">
+  <exec executable="${install.host.dir}/bin/openocd" failonerror="true">
+    <arg value="-f" />
+    <arg value="${basedir}/openocd.cfg" />
+  </exec>
+</target>
+
+<target name="toolchain" depends="checkhost, toolchain_linux_unpack, toolchain_osx_unpack" >
+</target>
+
+<target name="toolchain_linux_unpack" if="isLinux" >
+  <exec executable="tar" dir="${toolchain.dir}" failonerror="true">
+    <arg value="xjvf" />
+    <arg value="${toolchain.dir}/${gcc-linux-arm.archive}" />
+  </exec>
+</target>
+
+<target name="toolchain_osx_unpack" if="isOSX" >
+  <exec executable="tar" dir="${toolchain.dir}" failonerror="true">
+    <arg value="xjvf" />
+    <arg value="${toolchain.dir}/${gcc-osx-arm.archive}" />
+  </exec>
+</target>
+
+<target name="openocd" depends="libusb, openocd_build">
+</target>
+
+<target name="openocd_build">
+
+   <exec failonerror="true" executable="./bootstrap" dir="${openocd.dir}" />
+
+   <exec failonerror="true" executable="./configure" dir="${openocd.dir}" >
+     <env key="LIBUSB1_CFLAGS" value="-I${install.host.dir}/include/libusb-1.0" />
+     <env key="LIBUSB1_LIBS" value="-lusb-1.0" /> 
+     <env key="LDFLAGS" value="-L${install.host.dir}/lib" />
+<!--     <env key="LIBS" value="-lusb-1.0" /> -->
+     <arg value="--prefix=${install.host.dir}" />
+  </exec>
+
+
+  <exec executable="make" dir="${openocd.dir}" failonerror="true" >
+    <arg value="-j8" />
+    <arg value="install" />
+  </exec>
+  
+</target>
+
+
+<target name="tests">
+  <ant dir="${application.dir}" target="tests" /> 
+</target>
+
+<target name="tests_debug">
+  <ant dir="${application.dir}" target="tests_debug" /> 
+</target>
+
+<target name="clean">
+  <delete dir="${build.dir}" />
+  <mkdir dir="${build.dir}" />
+  <delete dir="${object.dir}" />
+  <mkdir dir="${object.dir}" />
+</target>
+
+<target name="embedded_release" depends="clean" >
+  <exec executable="make" dir="${embedded.dir}" failonerror="true">
+    <env key="COMPILER_PATH" value="${gcc-arm.dir}/bin/" />
+    <env key="BUILD_PATH"    value="${build.dir}" />
+    <env key="OBJECT_PATH"   value="${object.dir}" />
+    <env key="SOURCE_PATH"   value="${source.dir}" />
+    <env key="CMS_INCLUDE_PATH" value="${cms.include}" />
+    <env key="DEBUGBUILD"    value="FALSE" />
+    <arg value="all" />
+  </exec> 
+
+</target>
+
+<target name="embedded_debug" depends="clean" >
+  <exec executable="make" dir="${embedded.dir}" failonerror="true">
+    <env key="COMPILER_PATH" value="${gcc-arm.dir}/bin/" />
+    <env key="BUILD_PATH"    value="${build.dir}" />
+    <env key="OBJECT_PATH"   value="${object.dir}" />
+    <env key="SOURCE_PATH"   value="${source.dir}" />
+    <env key="CMS_INCLUDE_PATH" value="${cms.include}" />
+    <env key="DEBUGBUILD"    value="TRUE" />
+    <arg value="all" />
+  </exec> 
+
+</target>
+
+
+
+<target name="libusb" depends="libusb_build" />
+ 
+<target name="libusb_build">
+
+ <exec executable="./bootstrap.sh" dir="${libusb.dir}" failonerror="true" />
+
+ <exec executable="autoconf" dir="${libusb.dir}" failonerror="true">
+ </exec>
+
+ <exec executable="./configure" dir="${libusb.dir}" failonerror="true">
+    <arg value="--prefix=${install.host.dir}" />
+ </exec>
+
+ <exec executable="make" dir="${libusb.dir}" failonerror="true"> 
+    <arg value="install" />
+    <arg value="-j8" />
+ </exec>
+
+</target>
+
+
+</project>
+
